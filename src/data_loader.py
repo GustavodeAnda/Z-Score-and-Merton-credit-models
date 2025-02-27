@@ -5,8 +5,8 @@ This module contains the DataLoader class, which is responsible for downloading
 historical financial data from Yahoo Finance using the yfinance library.
 
 Usage:
-    Instantiate the DataLoader class and call the get_financial_data method,
-    providing the ticker symbol, start date, and end date.
+    Instantiate DataLoader and call get_financial_data providing the ticker,
+    start date, and end date.
 """
 
 import yfinance as yf
@@ -17,10 +17,6 @@ class DataLoader:
     DataLoader class for retrieving financial data from Yahoo Finance.
     """
     def __init__(self):
-        """
-        Initializes the DataLoader. Currently, no parameters are required.
-        """
-        # Initialization can be extended in the future if needed.
         pass
 
     def get_financial_data(self, ticker: str, start_date: str, end_date: str) -> pd.DataFrame:
@@ -30,7 +26,7 @@ class DataLoader:
         :param ticker: The stock ticker symbol (e.g., 'AAPL').
         :param start_date: The start date for data retrieval in YYYY-MM-DD format.
         :param end_date: The end date for data retrieval in YYYY-MM-DD format.
-        :return: A pandas DataFrame containing the financial data. Returns None if no data is found or an error occurs.
+        :return: A pandas DataFrame containing the financial data. Returns None if no data is found.
         """
         try:
             data = yf.download(ticker, start=start_date, end=end_date, progress=False)

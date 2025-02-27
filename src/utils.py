@@ -6,11 +6,14 @@ This module contains utility functions used in the Credit Risk Analysis project.
 Functions:
     - calculate_ratios: Calculates the financial ratios required for the Altman Z-Score.
     - black_scholes: Computes the European call option price using the Black-Scholes formula.
+    - plot_credit_results_df: Plots a grouped bar chart to visually display credit risk metrics.
 """
 
 import math
 from typing import Dict
 from scipy.stats import norm
+import matplotlib.pyplot as plt
+import numpy as np
 
 def calculate_ratios(working_capital: float, retained_earnings: float, ebit: float,
                      total_assets: float, market_value_equity: float, total_liabilities: float,
@@ -78,27 +81,61 @@ def black_scholes(S: float, K: float, T: float, r: float, sigma: float) -> float
     except Exception as e:
         raise ValueError(f"Error in Black-Scholes calculation: {e}")
 
-if __name__ == "__main__":
-    # Example usage for calculate_ratios
-    ratios = calculate_ratios(
-        working_capital=500000,
-        retained_earnings=300000,
-        ebit=200000,
-        total_assets=1500000,
-        market_value_equity=800000,
-        total_liabilities=700000,
-        sales=1200000
-    )
-    print("Calculated Ratios for Altman Z-Score:")
-    for key, value in ratios.items():
-        print(f"{key}: {value:.4f}")
+def plot_credit_results_df(df):
+    """
+    Plots a grouped bar chart for credit risk results from a DataFrame.
     
-    # Example usage for black_scholes
-    call_price = black_scholes(
-        S=100,    # Current stock price
-        K=95,     # Strike price
-        T=1,      # Time to maturity (1 year)
-        r=0.05,   # Risk-free interest rate (5%)
-        sigma=0.2 # Volatility (20%)
-    )
-    print(f"\nCalculated European Call Option Price: {call_price:.2f}")
+    The DataFrame must contain the following columns:
+        - "Ticker": Company ticker.
+        - "Altman Z-Score": Numeric Altman Z-Score.
+        - "Merton PD": Numeric Merton Default Probability (decimal).
+    
+    :param df: DataFrame with the credit risk analysis results.
+    """
+    required_columns = {"Ticker", "Altman Z-Score", "Merton PD"}
+    if not required_columns.issubset(df.columns):
+        print("DataFrame must contain 'Ticker', 'Altman Z-Score' and 'Merton PD' columns.")
+        return
+
+    tickers = df["Ticker"].tolist()
+    altman_scores = df["Altman Z-Score"].tolist()
+    merton_pd_pct = [val * 100 for val in df["Merton PD"].tolist()]
+    
+    x = np.arange(len(tickers))
+    width = 0.35
+
+    fig, ax = plt.subplots(figsize=(10, 6))
+    bars1 = ax.bar(x - width/2, altman_scores, width, label="Altman Z-Score", color='skyblue')
+    bars2 = ax.bar(x + width/2, merton_pd_pct, width, label="Merton Default Prob. (%)", color='lightcoral')
+
+    ax.set_ylabel("Value")
+    ax.set_title("Credit Risk Analysis Results by Ticker")
+    ax.set_xticks(x)
+    ax.set_xticklabels(tickers)
+    ax.legend()
+
+    def autolabel(bars):
+        for bar in bars:
+            height = bar.get_height()
+            ax.annotate(f'{height:.2f}',
+                        xy=(bar.get_x() + bar.get_width() / 2, height),
+                        xytext=(0, 3),
+                        textcoords="offset points",
+                        ha='center', va='bottom')
+
+    autolabel(bars1)
+    autolabel(bars2)
+
+    plt.tight_layout()
+    plt.show()
+
+if __name__ == "__main__":
+    # Example usage:
+    import pandas as pd
+    data = {
+        "Ticker": ["AAPL", "MSFT", "GOOGL"],
+        "Altman Z-Score": [2.8, 3.5, 2.1],
+        "Merton PD": [0.04, 0.03, 0.08]
+    }
+    df_example = pd.DataFrame(data)
+    plot_credit_results_df(df_example)
